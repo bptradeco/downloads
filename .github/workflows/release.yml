@@ -1,0 +1,54 @@
+name: Publish releases
+
+# Creates any release listed in releases.json that does not exist yet.
+# Releases are published by the workflow, never by a person.
+on:
+  push:
+    branches: [main]
+    paths: [releases.json, 'files/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish missing releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          count=$(jq length releases.json)
+          for i in $(seq 0 $((count - 1))); do
+            tag=$(jq -r ".[$i].tag" releases.json)
+            title=$(jq -r ".[$i].title" releases.json)
+            file=$(jq -r ".[$i].file" releases.json)
+            want=$(jq -r ".[$i].sha256" releases.json)
+            guide=$(jq -r ".[$i].guide" releases.json)
+            got=$(sha256sum "$file" | cut -d' ' -f1)
+            if [ "$got" != "$want" ]; then
+              echo "::error::$file has SHA-256 $got, releases.json says $want"
+              exit 1
+            fi
+            if gh release view "$tag" >/dev/null 2>&1; then
+              by=$(gh release view "$tag" --json author -q .author.login)
+              have=$(gh release view "$tag" --json assets -q '.assets[0].digest // ""')
+              if [ "$by" = "github-actions[bot]" ] && [ "$have" = "sha256:$want" ]; then
+                echo "$tag already published"
+                continue
+              fi
+              # Published by hand, or holding a different file: replace it.
+              gh release delete "$tag" --cleanup-tag --yes
+              sleep 3
+            fi
+            notes="Free NinjaTrader 8 indicator. Guide and requirements: $guide
+
+          SHA-256 of $(basename "$file"): $want
+
+          Education only. Trading futures involves substantial risk of loss."
+            gh release create "$tag" "$file" --title "$title" --notes "$notes" --target "$GITHUB_SHA"
+            echo "published $tag"
+          done

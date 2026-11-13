@@ -1,0 +1,16 @@
+[
+  {
+    "tag": "session-range-boxes-1.0.0",
+    "title": "BP Session Range Boxes 1.0.0",
+    "file": "files/BPSessionRangeBoxes_1.0.0.zip",
+    "sha256": "7cd8b71257b2dee96c993ca1c0dd6beee5e5554e4932cffa35ea19ba343deee0",
+    "guide": "https://bptrade.co/guides/bp-session-range-boxes"
+  },
+  {
+    "tag": "trade-review-1.0.1",
+    "title": "BP Trade Review 1.0.1",
+    "file": "files/BPTradeReview_v1.0.1.zip",
+    "sha256": "4d0951ad9e3cfeb0da85838ddc076fa4bbabb8f691c18947a42823fa39bae30a",
+    "guide": "https://bptrade.co/guides/bp-trade-review"
+  }
+]
